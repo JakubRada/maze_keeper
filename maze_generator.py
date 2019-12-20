@@ -13,6 +13,10 @@ Generated maze has to be feasible, i.e. there must exist valid path between
 the start and the gold.
 """
 
+EMPTY = 'EMPTY'
+WALL = 'OBSTACLE'
+GOLD = 'GOLD'
+START = 'START'
 
 def generate_empty(maze_size):
     """Creates an empty maze with start at top-left corner and gold at the opposite corner"""
@@ -62,6 +66,19 @@ def is_feasible(layout):
                 wave.add(new_cell)
     return False
 
+def init_maze(rows, cols):
+    layout = []
+    for i in range(rows):
+        temp = []
+        for n in range(cols):
+            temp.append(EMPTY)
+        layout.append(temp)
+    return layout
+
+def place_start_gold(layout):
+    layout[0][0] = START
+    layout[len(layout) - 3][0] = GOLD
+
 
 def generate_maze(maze_size):
     """
@@ -72,12 +89,31 @@ def generate_maze(maze_size):
 
     ===YOUR MAZE GENERATION CODE GOES HERE===
     """
-    while True:
-        layout = generate_random(maze_size)
-        if is_feasible(layout):
-            break
-    return layout
+    rows = maze_size[0]
+    cols = maze_size[1]
+    layout = init_maze(rows, cols)
+    place_start_gold(layout)
 
+
+    return layout
+    # if is_feasible(layout):
+    #     return layout
+
+def print_maze(maze):
+    values = {
+        EMPTY: " ",
+        WALL: "#",
+        START: "S",
+        GOLD: "G"
+    }
+    print("-" * (len(maze[0]) + 2))
+    for row in maze:
+        print("|", end="")
+        for col in row:
+            print(values[col], end="")
+        print("|")
+    print("-" * (len(maze[0]) + 2))
+    
 
 if __name__ == '__main__':
-    print(generate_maze((5, 5)))
+    print_maze(generate_maze((10, 10)))
