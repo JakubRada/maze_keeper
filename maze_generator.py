@@ -147,7 +147,7 @@ def place_diagonals_thin(layout):
     while layout[y - 1][x] == WALL:
         x += 1
     x += 1
-    while layout[y][x] != WALL:
+    while layout[y][x] != WALL and layout[y][x + 1] != WALL and layout[y][x + 2]:
         diagonalize_up(layout, x, y)
         x += 3
 
@@ -238,18 +238,74 @@ def print_maze(maze):
         START: "S",
         GOLD: "G"
     }
-    print("\u250f", end="")
-    print("\u2501" * len(maze[0]), end="")
-    print("\u2513")
-    for row in maze:
-        print("\u2503", end="")
-        for col in row:
-            print(values[col], end="")
-        print("\u2503")
-    print("\u2517", end="")
-    print("\u2501" * len(maze[0]), end="")
-    print("\u251b")
+    print_maze_header(maze)
+    print()
+    for row in range(len(maze)):
+        print_maze_row(maze, row, values)
+        print()
+    print_maze_footer(maze)
+    print()
     
 
+def print_maze_header(maze):
+    print("\u250f", end="")
+    print("\u2501" * len(maze[0]), end="")
+    print("\u2513", end="")
+
+def print_maze_footer(maze):
+    print("\u2517", end="")
+    print("\u2501" * len(maze[0]), end="")
+    print("\u251b", end="")
+
+def print_maze_row(maze, line, values):
+        print("\u2503", end="")
+        for col in maze[line]:
+            print(values[col], end="")
+        print("\u2503", end="")
+
+def test(maze):
+    if not is_feasible(maze):
+        print(len(maze[0]), len(maze), "NotFeasible")
+
+def test_mazes():
+    for i in range(5, 71):
+        for n in range(5, 71):
+            try:
+                test(generate_maze((i, n)))
+            except:
+                print(i, n, "Error")
+
+def save_mazes():
+    values = {
+        EMPTY: "·",
+        WALL: "\u2588",
+        START: "S",
+        GOLD: "G"
+    }
+    l = []
+    y = 0
+    for i in range(5, 71):
+        l.append([])
+        for n in range(5, 71):
+            l[y].append(generate_maze((i, n)))
+        y += 1
+    for i in range(len(l)):
+        for n in range(len(l[0])):
+            print_maze_header(l[i][n])
+            print(" ", end="")
+        print()
+        for n in range(len(l[i][n])):
+            for o in range(len(l[0])):
+                print_maze_row(l[i][o], n, values)
+                print(" ", end="")
+            print()
+        for n in range(len(l[0])):
+            print_maze_footer(l[i][n])
+            print(" ", end="")
+        print()
+
+
 if __name__ == '__main__':
-    print_maze(generate_maze((20, 20)))
+    test_mazes()
+    # print_maze(generate_maze((18, 18)))
+    # save_mazes()
