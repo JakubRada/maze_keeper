@@ -1,6 +1,5 @@
 import random
 
-from maze_generator import generate_maze
 from maze_keeper import MazeKeeper
 from visualization import Visualization
 
@@ -47,7 +46,7 @@ class Simulation:
         else:
             print('Agent FAILED to bring the gold to the start', end='')
         print(' in {} steps.'.format(len(trace)))
-        input('Press any key to visualize the agents progress.')
+        #input('Press any key to visualize the agents progress.')
         if self.visualize:
             vis = Visualization(layout, speed=speed)
             vis.show_trace(trace)
@@ -56,6 +55,15 @@ class Simulation:
 if __name__ == '__main__':
     from agent import Agent
     from maze_generator import generate_maze
+    import time
 
-    sim = Simulation(maze_size=(30, 50), step_limit=1000, visualize=True, agent=Agent, maze_generator=generate_maze)
-    sim.run_and_display_results(speed=0.1)
+    # sizes = [5, 10, 20, 40, 70]
+    sizes = [10]
+
+    for size in sizes:
+        start = time.time()
+        sim = Simulation(maze_size=(size, size), step_limit=1000, visualize=False, agent=Agent, maze_generator=generate_maze)
+        sim.run_and_display_results(speed=0.1)
+        finish = time.time()
+        print("Time for ", size, "x", size, ": ", finish - start, sep="")
+        print()
