@@ -14,7 +14,8 @@ TILES = {
     "GOLD": "GOLD",
     "WALL": "OBSTACLE",
     "FREE": "EMPTY",
-    "UNKNOWN": "UNKNOWN"
+    "UNKNOWN": "UNKNOWN",
+    "BARRIER": "BARRIER"
 }
 
 
@@ -53,6 +54,7 @@ class Agent:
         self.gold_found = False
         self.route_back = None
         self.steps_back_taken = 0
+        self.visited_tiles = {self.agent_position}
 
     def init_maze(self):
         """initialize maze map with the positions of start and gold"""
@@ -75,6 +77,9 @@ class Agent:
 
     def save_observation(self, observation):
         """saves the observed information"""
+        # update visited_tiles
+        self.visited_tiles.add(observation.position)
+
         # check if gold has been retrieved
         if not self.gold_found and self.agent_position == self.gold_position:
             self.gold_found = True
@@ -86,7 +91,8 @@ class Agent:
             for i in range(observation.vision[direction]):
                 observed_pos[0] += DIRECTIONS[direction][0]
                 observed_pos[1] += DIRECTIONS[direction][1]
-                self.maze[observed_pos[0]][observed_pos[1]] = TILES["FREE"]
+                if self.maze[observed_pos[0]][observed_pos[1]] != TILES["BARRIER"]:
+                    self.maze[observed_pos[0]][observed_pos[1]] = TILES["FREE"]
             # save visible wall tile
             observed_pos[0] += DIRECTIONS[direction][0]
             observed_pos[1] += DIRECTIONS[direction][1]
@@ -94,7 +100,8 @@ class Agent:
                 self.maze[observed_pos[0]][observed_pos[1]] = TILES["WALL"]
 
         # rewrite start and gold
-        self.maze[self.start_position[0]][self.start_position[1]] = TILES["START"]
+        if self.maze[self.start_position[0]][self.start_position[1]] != TILES["BARRIER"]:
+            self.maze[self.start_position[0]][self.start_position[1]] = TILES["START"]
         self.maze[self.gold_position[0]][self.gold_position[1]] = TILES["GOLD"]
 
     def random_action(self):
@@ -112,16 +119,43 @@ class Agent:
         # save observed tiles
         self.save_observation(observation)
 
+        # during the way to gold, perform BFS every turn
         if not self.gold_found:
             ret = self.perform_BFS(TILES["GOLD"])
+            # check for dead ends
+            self.check_for_dead_ends(ret)
+        # during the way back to start, perform BFS only once and save the whole route
         else:
             if not self.route_back:
+                self.remove_barriers()
                 self.route_back = self.perform_BFS(TILES["START"])
-                print(self.route_back)
             ret = self.route_back[self.steps_back_taken]
             self.steps_back_taken += 1
 
         return ret
+
+    def check_for_dead_ends(self, next_move):
+        """Adds barriers to cut off dead ends in order to reduce computation time."""
+        next_move = DIRECTIONS[next_move]
+        next_position = (self.agent_position[0] + next_move[0], self.agent_position[1] + next_move[1])
+        if next_position in self.visited_tiles:
+            self.maze[self.agent_position[0]][self.agent_position[1]] = TILES["BARRIER"]
+
+    def remove_barriers(self):
+        """Removes all barriers to be able to find way back to the Start."""
+        for row in range(self.maze_size[0]):
+            for col in range(self.maze_size[1]):
+                if self.maze[row][col] == TILES["BARRIER"]:
+                    self.maze[row][col] = TILES["FREE"]
+        self.maze[self.start_position[0]][self.start_position[1]] = TILES["START"]
+
+    def is_obstacle(self, coordinates):
+        """Checks whether the tile of the given coordinates is an obstacle."""
+        if self.maze[coordinates[0]][coordinates[1]] == TILES["WALL"]:
+            return True
+        if self.maze[coordinates[0]][coordinates[1]] == TILES["BARRIER"]:
+            return True
+        return False
 
     def perform_BFS(self, target):
         """
@@ -155,7 +189,7 @@ class Agent:
                     return dir
                 else:
                     return [dir]
-            if self.maze[new_position[0]][new_position[1]] != TILES["WALL"]:
+            if not self.is_obstacle((new_position[0], new_position[1])):
                 if target == TILES["GOLD"]:
                     new_node = Node(dir, new_position)
                 else:
@@ -166,6 +200,11 @@ class Agent:
 
         # perform the rest of BFS to find target
         while True:
+            # safety check if generated barriers "locked agent in" somewhere (probably not necessary)
+            if target == TILES["GOLD"] and len(youngest_nodes) == 0:
+                self.remove_barriers()
+                return self.perform_BFS(target)
+
             for node in youngest_nodes:
                 for dir in DIRECTIONS:
                     new_position = (node.position[0] + DIRECTIONS[dir][0], node.position[1] + DIRECTIONS[dir][1])
@@ -180,7 +219,7 @@ class Agent:
                             new_origin = node.origin
                             new_origin.append(dir)
                             return new_origin
-                    if self.maze[new_position[0]][new_position[1]] != TILES["WALL"]:
+                    if not self.is_obstacle((new_position[0], new_position[1])):
                         if target == TILES["GOLD"]:
                             new_node = Node(node.origin, new_position)
                         else:

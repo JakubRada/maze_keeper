@@ -14,7 +14,7 @@ class Simulation:
     WARNING: Run this file from console for visualization to work properly.
     """
 
-    def __init__(self, maze_size=(30, 50), step_limit=1000, visualize=True, agent=None, maze_generator=None):
+    def __init__(self, maze_size=(30, 50), step_limit=5000, visualize=True, agent=None, maze_generator=None):
         self.visualize = visualize
         self.step_limit = step_limit
         self.maze_size = maze_size
