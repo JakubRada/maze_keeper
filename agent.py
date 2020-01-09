@@ -12,9 +12,17 @@ class Agent:
 
     def __init__(self, maze_size, step_limit, start_position, gold_position):
         self.step_limit = step_limit
-        self.maze_size = maze_size
+        self.maze_size = (maze_size[0], maze_size[1])
         self.start_position = start_position
         self.gold_position = gold_position
+
+        self.maze = None
+        self.init_maze()
+
+    def init_maze(self):
+        self.maze = []
+        for i in range(self.maze_size[0]):
+            self.maze.append([None] * self.maze_size[1])
 
     def random_action(self):
         """Moves randomly"""
@@ -28,4 +36,7 @@ class Agent:
 
         ===YOUR AGENT DECISION MAKING CODE GOES HERE===
         """
+        print(observation)
+        print(self.maze)
+
         return self.random_action()
