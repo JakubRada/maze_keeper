@@ -17,6 +17,7 @@ EMPTY = 'EMPTY'
 WALL = 'OBSTACLE'
 GOLD = 'GOLD'
 START = 'START'
+UNKNOWN = 'UNKNOWN'
 RIGHT_LINE_THRESHOLD = 10
 GOLD_THRESHOLD = 5
 
@@ -236,7 +237,8 @@ def print_maze(maze):
         EMPTY: "·",
         WALL: "\u2588",
         START: "S",
-        GOLD: "G"
+        GOLD: "G",
+        UNKNOWN: " "
     }
     print_maze_header(maze)
     print()
@@ -280,7 +282,8 @@ def save_mazes():
         EMPTY: "·",
         WALL: "\u2588",
         START: "S",
-        GOLD: "G"
+        GOLD: "G",
+        UNKNOWN: " "
     }
     l = []
     y = 0
