@@ -25,6 +25,8 @@ class Node:
     and has its children (following steps of possible routes) stored in self.children.
     """
     def __init__(self, origin, position):
+        # contains the first move of the route taken to get to this node
+        # or a list of all moves taken to get to this node (depends on what is needed)
         self.origin = origin
         self.position = position
         self.children = []
@@ -49,6 +51,8 @@ class Agent:
         self.init_maze()
 
         self.gold_found = False
+        self.route_back = None
+        self.steps_back_taken = 0
 
     def init_maze(self):
         """initialize maze map with the positions of start and gold"""
@@ -71,9 +75,6 @@ class Agent:
 
     def save_observation(self, observation):
         """saves the observed information"""
-        # save agent's position
-        self.agent_position = observation.position
-
         # check if gold has been retrieved
         if not self.gold_found and self.agent_position == self.gold_position:
             self.gold_found = True
@@ -106,26 +107,38 @@ class Agent:
         :param observation: includes tuple "position" and dictionary "vision"
         :return: One of the actions from ACTIONS.keys()
         """
+        # save agent's position
+        self.agent_position = observation.position
+        # save observed tiles
         self.save_observation(observation)
 
-        if self.gold_found:
-            ret = self.perform_BFS(TILES["START"])
-        else:
+        if not self.gold_found:
             ret = self.perform_BFS(TILES["GOLD"])
+        else:
+            if not self.route_back:
+                self.route_back = self.perform_BFS(TILES["START"])
+                print(self.route_back)
+            ret = self.route_back[self.steps_back_taken]
+            self.steps_back_taken += 1
+
         return ret
 
     def perform_BFS(self, target):
         """
         Performs BFS to find the shortest path to the given target (Gold or Start).
         Treats all unknown tiles as empty tiles.
-        :return: The directions which to take to get to Gold by the shortest path.
+        :return: if target is GOLD: The direction which to take in the next move to get to Gold by the shortest path.
+                 if target is START: A list of all directions to take to get to Start by the shortest path.
         """
         # just to make finding errors easier
         if target != TILES["GOLD"] and target != TILES["START"]:
             return None
 
         # root represents 0th step (current position)
-        root = Node(None, self.agent_position)
+        if target == TILES["GOLD"]:
+            root = Node(None, self.agent_position)
+        else:
+            root = Node([], self.agent_position)
         # a list of all visited coordinates
         visited = [root.position]
         # keeps the last generation of nodes so we can access them
@@ -138,26 +151,44 @@ class Agent:
             if self.is_out_of_bounds(new_position):
                 continue
             if self.maze[new_position[0]][new_position[1]] == target:
-                return dir
+                if target == TILES["GOLD"]:
+                    return dir
+                else:
+                    return [dir]
             if self.maze[new_position[0]][new_position[1]] != TILES["WALL"]:
-                new_node = Node(dir, new_position)
+                if target == TILES["GOLD"]:
+                    new_node = Node(dir, new_position)
+                else:
+                    new_node = Node([dir], new_position)
                 root.children.append(new_node)
                 youngest_nodes.append(new_node)
                 visited.append(new_node.position)
 
-        # perform the rest of BFS to find Gold
+        # perform the rest of BFS to find target
         while True:
             for node in youngest_nodes:
-                for direction in list(DIRECTIONS.values()):
-                    new_position = (node.position[0] + direction[0], node.position[1] + direction[1])
+                for dir in DIRECTIONS:
+                    new_position = (node.position[0] + DIRECTIONS[dir][0], node.position[1] + DIRECTIONS[dir][1])
                     if self.is_out_of_bounds(new_position):
                         continue
                     if new_position in visited:
                         continue
                     if self.maze[new_position[0]][new_position[1]] == target:
-                        return node.origin
+                        if target == TILES["GOLD"]:
+                            return node.origin
+                        else:
+                            new_origin = node.origin
+                            new_origin.append(dir)
+                            return new_origin
                     if self.maze[new_position[0]][new_position[1]] != TILES["WALL"]:
-                        new_node = Node(node.origin, new_position)
+                        if target == TILES["GOLD"]:
+                            new_node = Node(node.origin, new_position)
+                        else:
+                            new_origin = []
+                            for item in node.origin:
+                                new_origin.append(item)
+                            new_origin.append(dir)
+                            new_node = Node(new_origin, new_position)
                         node.children.append(new_node)
                         youngest_nodes_buffer.append(new_node)
                         visited.append(new_node.position)

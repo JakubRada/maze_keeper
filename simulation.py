@@ -57,8 +57,8 @@ if __name__ == '__main__':
     from maze_generator import generate_maze
     import time
 
-    # sizes = [5, 10, 20, 40, 70]
-    sizes = [10]
+    sizes = [5, 10, 20, 40, 70]
+    # sizes = [5]
 
     for size in sizes:
         start = time.time()

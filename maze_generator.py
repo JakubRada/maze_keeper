@@ -309,6 +309,6 @@ def save_mazes():
 
 
 if __name__ == '__main__':
-    test_mazes()
-    # print_maze(generate_maze((18, 18)))
+    # test_mazes()
+    print_maze(generate_maze((5, 5)))
     # save_mazes()
