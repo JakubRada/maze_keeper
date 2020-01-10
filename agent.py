@@ -174,7 +174,9 @@ class Agent:
         else:
             root = Node([], self.agent_position)
         # a list of all visited coordinates
-        visited = [root.position]
+        visited = []
+        for i in range(self.maze_size[0]):
+            visited.append([False] * self.maze_size[1])
         # keeps the last generation of nodes so we can access them
         youngest_nodes = []
         youngest_nodes_buffer = []
@@ -196,7 +198,7 @@ class Agent:
                     new_node = Node([dir], new_position)
                 root.children.append(new_node)
                 youngest_nodes.append(new_node)
-                visited.append(new_node.position)
+                visited[new_position[0]][new_position[1]] = True
 
         # perform the rest of BFS to find target
         while True:
@@ -210,7 +212,7 @@ class Agent:
                     new_position = (node.position[0] + DIRECTIONS[dir][0], node.position[1] + DIRECTIONS[dir][1])
                     if self.is_out_of_bounds(new_position):
                         continue
-                    if new_position in visited:
+                    if visited[new_position[0]][new_position[1]]:
                         continue
                     if self.maze[new_position[0]][new_position[1]] == target:
                         if target == TILES["GOLD"]:
@@ -230,6 +232,6 @@ class Agent:
                             new_node = Node(new_origin, new_position)
                         node.children.append(new_node)
                         youngest_nodes_buffer.append(new_node)
-                        visited.append(new_node.position)
+                        visited[new_position[0]][new_position[1]] = True
             youngest_nodes = youngest_nodes_buffer
             youngest_nodes_buffer = []
