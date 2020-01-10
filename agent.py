@@ -54,7 +54,9 @@ class Agent:
         self.gold_found = False
         self.route_back = None
         self.steps_back_taken = 0
-        self.visited_tiles = {self.agent_position}
+        self.visited_tiles = []
+        for i in range(self.maze_size[0]):
+            self.visited_tiles.append([False] * self.maze_size[1])
 
     def init_maze(self):
         """initialize maze map with the positions of start and gold"""
@@ -78,7 +80,7 @@ class Agent:
     def save_observation(self, observation):
         """saves the observed information"""
         # update visited_tiles
-        self.visited_tiles.add(observation.position)
+        self.visited_tiles[observation.position[0]][observation.position[1]] = True
 
         # check if gold has been retrieved
         if not self.gold_found and self.agent_position == self.gold_position:
@@ -138,7 +140,7 @@ class Agent:
         """Adds barriers to cut off dead ends in order to reduce computation time."""
         next_move = DIRECTIONS[next_move]
         next_position = (self.agent_position[0] + next_move[0], self.agent_position[1] + next_move[1])
-        if next_position in self.visited_tiles:
+        if self.visited_tiles[next_position[0]][next_position[1]]:
             self.maze[self.agent_position[0]][self.agent_position[1]] = TILES["BARRIER"]
 
     def remove_barriers(self):
