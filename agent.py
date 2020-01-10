@@ -130,6 +130,7 @@ class Agent:
         else:
             if not self.route_back:
                 self.remove_barriers()
+                self.add_barriers_for_unknown_tiles()
                 self.route_back = self.perform_BFS(TILES["START"])
             ret = self.route_back[self.steps_back_taken]
             self.steps_back_taken += 1
@@ -150,6 +151,13 @@ class Agent:
                 if self.maze[row][col] == TILES["BARRIER"]:
                     self.maze[row][col] = TILES["FREE"]
         self.maze[self.start_position[0]][self.start_position[1]] = TILES["START"]
+
+    def add_barriers_for_unknown_tiles(self):
+        """Add barriers to unknown tiles to ignore unknown parts of the maze on the way back to start."""
+        for row in range(self.maze_size[0]):
+            for col in range(self.maze_size[1]):
+                if self.maze[row][col] == TILES["UNKNOWN"]:
+                    self.maze[row][col] = TILES["BARRIER"]
 
     def is_obstacle(self, coordinates):
         """Checks whether the tile of the given coordinates is an obstacle."""
